@@ -70,14 +70,39 @@
 
   .qrWrap { display: flex; justify-content: center; padding: 12px 0 4px; }
 
-  @media (max-width: 720px) { aside { display: none; } }
+  /* mobile top bar + off-canvas drawer — the sidebar used to just vanish
+     below 720px with nothing replacing it: no menu, no way back to the
+     landing page, nothing. It's the same aside now, just repositioned as a
+     slide-in panel instead of removed. */
+  .mobileBar { display: none; }
+  .drawerBackdrop { display: none; }
+  @media (max-width: 720px) {
+    .mobileBar {
+      display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 30;
+      background: var(--panel); border-bottom: 3px solid var(--ink); padding: 14px 18px;
+    }
+    .hamburgerBtn {
+      width: 42px; height: 42px; border: 3px solid var(--ink); border-radius: 12px; background: var(--panel);
+      font-size: 18px; display: flex; align-items: center; justify-content: center;
+    }
+    aside {
+      position: fixed; top: 0; left: 0; z-index: 40; width: 86%; max-width: 300px;
+      transform: translateX(-100%); transition: transform .25s ease; box-shadow: none;
+    }
+    aside.open { transform: translateX(0); box-shadow: 10px 0 0 #00000022; }
+    .drawerBackdrop.open {
+      display: block; position: fixed; inset: 0; background: #00000055; z-index: 35;
+    }
+  }
 </style>
 </head>
 <body>
 <div class="shell">
 
+  <div class="drawerBackdrop" id="drawerBackdrop"></div>
+
   <aside id="sidebar" hidden>
-    <span class="brand"><span class="mark">S</span>SPRAYME</span>
+    <a class="brand" href="./"><span class="mark">S</span>SPRAYME</a>
     <div class="balanceCard">
       <small class="label" style="opacity:0.7">Balance</small>
       <b id="sideBalance">—</b>
@@ -100,6 +125,11 @@
   </aside>
 
   <main>
+    <div class="mobileBar" id="mobileBar" hidden>
+      <button class="hamburgerBtn" id="btnOpenDrawer" aria-label="Open menu">☰</button>
+      <a class="brand" href="./" style="font-size:15px"><span class="mark" style="width:28px; height:28px; font-size:13px">S</span>SPRAYME</a>
+      <span style="width:42px"></span>
+    </div>
     <div class="phoneWrap">
       <div class="phone">
 

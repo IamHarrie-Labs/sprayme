@@ -104,8 +104,24 @@
   }
 
   document.querySelectorAll('[data-go]').forEach((el) => {
-    el.addEventListener('click', () => switchScreen(el.dataset.go));
+    el.addEventListener('click', () => { switchScreen(el.dataset.go); closeDrawer(); });
   });
+
+  // ------------------------------------------------------------- mobile drawer
+  //
+  // Below 720px the sidebar becomes a slide-in panel instead of just
+  // vanishing — it used to disappear entirely on mobile with nothing to
+  // replace it, no menu, no way back to the landing page.
+  function openDrawer() {
+    $('sidebar').classList.add('open');
+    $('drawerBackdrop').classList.add('open');
+  }
+  function closeDrawer() {
+    $('sidebar').classList.remove('open');
+    $('drawerBackdrop').classList.remove('open');
+  }
+  $('btnOpenDrawer').onclick = openDrawer;
+  $('drawerBackdrop').onclick = closeDrawer;
 
   // ---------------------------------------------------------------- sign in
 
@@ -117,6 +133,7 @@
     state.cappedPoolContract = new ethers.Contract(cfg.CAPPEDPOOL_ADDRESS, cfg.CAPPEDPOOL_ABI, signer);
 
     $('sidebar').hidden = false;
+    $('mobileBar').hidden = false;
     $('sideAddress').textContent = shortAddr(state.address);
     $('dashAddress').textContent = shortAddr(state.address);
     $('settingsAddress').textContent = state.address;
@@ -183,6 +200,8 @@
     state.contract = null;
     state.session = null;
     $('sidebar').hidden = true;
+    $('mobileBar').hidden = true;
+    closeDrawer();
     switchScreen('signin');
     $('signinNote').textContent = 'Your keys stay yours. Spray never holds your balance.';
   }
