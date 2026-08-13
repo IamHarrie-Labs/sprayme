@@ -1,0 +1,187 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SprayMe · The Wall</title>
+<link rel="stylesheet" href="./brutal.css" />
+<style>
+  body { min-height: 100vh; }
+  .wrap { max-width: 1220px; margin: 0 auto; padding: 36px 28px; }
+  .board {
+    background: var(--ink); color: var(--panel); border: 3px solid var(--ink); border-radius: 28px; overflow: hidden;
+  }
+  .boardHead {
+    display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 26px 32px;
+    border-bottom: 3px solid var(--panel); flex-wrap: wrap;
+  }
+  .boardHead h2 { font-size: 44px; margin: 8px 0 0; }
+  .boardHead .figure { text-align: right; }
+  .boardHead b.big { display: block; font-size: 52px; font-weight: 900; letter-spacing: -0.02em; color: var(--yellow); }
+  .mcBanner {
+    background: var(--coral); color: var(--panel); padding: 16px 32px; border-bottom: 3px solid var(--panel);
+    display: flex; align-items: center; gap: 14px;
+  }
+  .mcBanner .badge {
+    flex: none; width: 36px; height: 36px; border: 3px solid var(--panel); border-radius: 50%; background: var(--yellow);
+    color: var(--ink); display: flex; align-items: center; justify-content: center; font-size: 18px;
+  }
+  .mcBanner b { font-size: 22px; font-weight: 800; letter-spacing: -0.01em; }
+  .cols { display: grid; grid-template-columns: 1.1fr 0.9fr; }
+  .colLeaders { padding: 28px 32px; border-right: 3px solid var(--panel); }
+  .colFeed { padding: 28px 32px; }
+  .colTitle { font-size: 12px; letter-spacing: 0.14em; margin: 0 0 20px; font-weight: 700; opacity: 0.7; }
+  .leaderRow { display: flex; align-items: center; gap: 16px; border-top: 2px solid rgba(255,246,229,0.3); padding: 14px 0; }
+  .leaderRow:first-child { border-top: none; }
+  .leaderRank {
+    flex: none; width: 40px; height: 40px; border: 3px solid var(--panel); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 16px; background: var(--yellow); color: var(--ink);
+  }
+  .leaderName { flex: 1; font-size: 26px; font-weight: 800; letter-spacing: -0.01em; }
+  .leaderAmt { font-family: 'Space Mono', monospace; font-size: 20px; font-weight: 700; }
+  .feedRow { display: flex; align-items: baseline; gap: 12px; border-top: 2px dashed rgba(255,246,229,0.3); padding: 12px 0; }
+  .feedRow:first-child { border-top: none; }
+  .feedName { flex: 1; font-size: 19px; font-weight: 600; }
+  .feedAmt { font-family: 'Space Mono', monospace; font-size: 17px; color: var(--green); }
+  .ticker { overflow: hidden; border-top: 3px solid var(--panel); padding: 12px 0; background: var(--yellow); color: var(--ink); }
+  .ticker div { display: flex; gap: 44px; width: max-content; font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700; letter-spacing: 0.12em; animation: spray-marquee 20s linear infinite; }
+  .caption { font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.08em; opacity: 0.6; margin: 20px 0 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="board">
+    <div class="boardHead">
+      <div>
+        <small class="label">The wall &middot; <span id="codeVal">—</span></small>
+        <h2 id="title">—</h2>
+      </div>
+      <div class="figure">
+        <small class="label">Sprayed tonight</small>
+        <b class="big" id="total">0</b>
+      </div>
+    </div>
+    <div class="mcBanner">
+      <span class="badge">✺</span>
+      <b id="hype">Waiting for the first spray.</b>
+    </div>
+    <div class="cols">
+      <div class="colLeaders">
+        <h3 class="colTitle">Top sprayers</h3>
+        <div id="board"></div>
+      </div>
+      <div class="colFeed">
+        <h3 class="colTitle">Landing now</h3>
+        <div id="feed"></div>
+      </div>
+    </div>
+    <div class="ticker"><div id="tickerInner"></div></div>
+  </div>
+  <p class="caption">For the venue screen. Updates as each spray confirms on BOT Chain.</p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.4/dist/ethers.umd.min.js"></script>
+<script src="./config.js"></script>
+<script>
+const params = new URLSearchParams(location.search);
+const { RPC_URL, ABI } = window.SPRAY_CONFIG;
+const SPRAY_ADDRESS = window.SPRAY_CONFIG.SPRAY_ADDRESS;
+const CODE = (params.get('code') || window.SPRAY_CONFIG.CODE || '').toUpperCase();
+let SESSION_ID = params.get('session') || window.SPRAY_CONFIG.SESSION_ID;
+
+const provider = new ethers.JsonRpcProvider(RPC_URL);
+const contract = new ethers.Contract(SPRAY_ADDRESS, ABI, provider);
+
+const leaderboard = new Map(); // addr -> { name, total }
+let sessionTotal = 0n;
+
+function fmt(v) { return Number(ethers.formatEther(v)).toLocaleString(undefined, { maximumFractionDigits: 4 }); }
+
+function renderBoard() {
+  const sorted = [...leaderboard.entries()].sort((a, b) => (b[1].total > a[1].total ? 1 : -1));
+  document.getElementById('board').innerHTML = sorted.map(([addr, g], i) => `
+    <div class="leaderRow">
+      <b class="leaderRank">${i + 1}</b>
+      <span class="leaderName">${g.name}</span>
+      <b class="leaderAmt">${fmt(g.total)} BOT</b>
+    </div>`).join('') || '<p class="mono" style="opacity:0.6; font-size:14px">No sprays yet.</p>';
+  document.getElementById('total').textContent = fmt(sessionTotal) + ' BOT';
+}
+
+function pushFeed(text) {
+  const el = document.getElementById('feed');
+  const div = document.createElement('div');
+  div.className = 'feedRow';
+  div.innerHTML = `<span class="feedName">${text.name}</span><b class="feedAmt">${text.amount} BOT</b>`;
+  el.prepend(div);
+  while (el.children.length > 40) el.removeChild(el.lastChild);
+}
+
+function showHype(line) {
+  document.getElementById('hype').textContent = line;
+}
+
+async function init() {
+  if (!SESSION_ID && CODE) {
+    SESSION_ID = (await contract.sessionByCode(CODE)).toString();
+  }
+  const session = await contract.getSession(SESSION_ID);
+  const title = await contract.title(SESSION_ID);
+  document.getElementById('title').textContent = title || 'Spray';
+  document.getElementById('codeVal').textContent = CODE || (await contract.code(SESSION_ID));
+  sessionTotal = session.total;
+
+  const tickerCode = CODE || document.getElementById('codeVal').textContent;
+  const tickerText = `✣ Spray with code ${tickerCode} ✣ No cash needed ✣ Spray from anywhere in the world `;
+  document.getElementById('tickerInner').textContent = tickerText.repeat(4);
+
+  // Backfill history first, so a wall opened mid-party shows the real
+  // leaderboard immediately instead of an empty board that only fills in
+  // from whatever sprays happen to land after the page loads.
+  const pastJoins = await contract.queryFilter(contract.filters.Joined(SESSION_ID));
+  for (const ev of pastJoins) {
+    leaderboard.set(ev.args.guest.toLowerCase(), { name: ev.args.name, total: 0n });
+  }
+  const pastSprays = await contract.queryFilter(contract.filters.Sprayed(SESSION_ID));
+  for (const ev of pastSprays) {
+    const key = ev.args.guest.toLowerCase();
+    const existing = leaderboard.get(key) || { name: short(ev.args.guest), total: 0n };
+    existing.total = ev.args.guestTotal;
+    leaderboard.set(key, existing);
+  }
+  const pastHypes = await contract.queryFilter(contract.filters.Hyped(SESSION_ID));
+  if (pastHypes.length) showHype(pastHypes[pastHypes.length - 1].args.line);
+
+  renderBoard();
+
+  contract.on(contract.filters.Joined(SESSION_ID), (sessionId, guest, name) => {
+    if (!leaderboard.has(guest.toLowerCase())) leaderboard.set(guest.toLowerCase(), { name, total: 0n });
+    else leaderboard.get(guest.toLowerCase()).name = name;
+  });
+
+  contract.on(contract.filters.Sprayed(SESSION_ID), (sessionId, guest, amount, guestTotal, newSessionTotal) => {
+    const key = guest.toLowerCase();
+    const existing = leaderboard.get(key) || { name: short(guest), total: 0n };
+    existing.total = guestTotal;
+    leaderboard.set(key, existing);
+    sessionTotal = newSessionTotal;
+    pushFeed({ name: existing.name, amount: fmt(amount) });
+    renderBoard();
+  });
+
+  contract.on(contract.filters.Hyped(SESSION_ID), (sessionId, agent, line) => {
+    showHype(line);
+  });
+
+  // Fallback poll in case event listeners miss anything. BOT Chain's node
+  // does not support eth_subscribe, so ethers falls back to polling under
+  // the hood anyway; this just tightens the interval for a live-wall feel.
+  provider.pollingInterval = 500;
+}
+
+function short(addr) { return addr.slice(0, 6) + '…' + addr.slice(-4); }
+
+init().catch((e) => pushFeed({ name: 'Could not load this session: ' + e.message, amount: '' }));
+</script>
+</body>
+</html>

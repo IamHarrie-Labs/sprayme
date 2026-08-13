@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SprayMe</title>
+<link rel="stylesheet" href="./brutal.css" />
+<style>
+  body { min-height: 100vh; }
+  .shell { display: flex; align-items: stretch; min-height: 100vh; }
+
+  /* sidebar (desktop, signed in) */
+  aside {
+    flex: none; width: 268px; border-right: 3px solid var(--ink); background: var(--panel);
+    padding: 26px 20px; display: flex; flex-direction: column; gap: 22px; position: sticky;
+    top: 0; height: 100vh; overflow-y: auto;
+  }
+  aside[hidden] { display: none; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 900; letter-spacing: 0.06em; font-size: 18px; }
+  .brand .mark {
+    width: 34px; height: 34px; border: 3px solid var(--ink); border-radius: 50%; background: var(--coral);
+    display: flex; align-items: center; justify-content: center; color: var(--panel); font-size: 16px; font-weight: 900;
+  }
+  .balanceCard { background: var(--ink); color: var(--panel); border: 3px solid var(--ink); border-radius: 18px; padding: 16px 18px; }
+  .balanceCard b { display: block; font-size: 26px; font-weight: 900; letter-spacing: -0.02em; margin-top: 4px; }
+  nav.tabs { display: flex; flex-direction: column; gap: 8px; }
+  nav.tabs button {
+    display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; font-size: 16px;
+    font-weight: 800; letter-spacing: -0.01em; border: 3px solid var(--ink); border-radius: 14px;
+    padding: 12px 14px; background: var(--panel);
+  }
+  nav.tabs button.active { background: var(--yellow); box-shadow: 4px 4px 0 var(--ink); }
+  .sideFooter { margin-top: auto; border-top: 3px solid var(--ink); padding-top: 16px; }
+
+  main { flex: 1; min-width: 0; padding-bottom: 60px; }
+  .phoneWrap { display: flex; justify-content: center; padding: 44px 24px; }
+  .phone { width: 100%; max-width: 430px; }
+
+  section[hidden] { display: none !important; }
+
+  /* spray screen */
+  .amountGrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; }
+  .sprayZone { padding: 26px; display: flex; flex-direction: column; align-items: center; gap: 14px; position: relative; }
+  .popLayer { position: absolute; top: 10px; left: 0; right: 0; display: flex; justify-content: center; pointer-events: none; height: 0; }
+  .pop {
+    position: absolute; font-family: 'Space Mono', monospace; font-size: 22px; font-weight: 700;
+    color: var(--coral); animation: spray-pop 900ms ease-out forwards;
+  }
+  .sprayBtn {
+    width: 220px; height: 220px; border-radius: 50%; border: 5px solid var(--ink); background: var(--coral);
+    color: var(--panel); display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 8px; box-shadow: 8px 8px 0 var(--ink); touch-action: none; user-select: none;
+  }
+  .sprayBtn span.big { font-size: 46px; font-weight: 900; letter-spacing: -0.03em; line-height: 1; }
+  .sprayBtn.holding { animation: sprayPulse 0.4s ease-in-out infinite; }
+  @keyframes sprayPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); } }
+
+  .topStat { display: flex; justify-content: space-between; align-items: flex-end; padding: 24px 26px 0; }
+  .topStat .stat { display: flex; flex-direction: column; gap: 4px; }
+  .topStat b { font-size: 30px; font-weight: 900; letter-spacing: -0.02em; }
+
+  .listRow { display: flex; justify-content: space-between; align-items: center; gap: 12px; border-top: 2px dashed var(--ink); padding: 12px 0; }
+  .listRow.solid { border-top: 2px solid var(--ink); }
+
+  .toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--panel);
+    border: 3px solid var(--ink); border-radius: 999px; padding: 12px 20px; font-size: 14px; font-weight: 700;
+    animation: toast-in 0.2s ease-out; z-index: 40; max-width: 90vw; text-align: center;
+  }
+
+  .qrWrap { display: flex; justify-content: center; padding: 12px 0 4px; }
+
+  @media (max-width: 720px) { aside { display: none; } }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <aside id="sidebar" hidden>
+    <span class="brand"><span class="mark">S</span>SPRAYME</span>
+    <div class="balanceCard">
+      <small class="label" style="opacity:0.7">Balance</small>
+      <b id="sideBalance">—</b>
+      <small class="mono" style="font-size:10px; letter-spacing:0.08em; opacity:0.6" id="sideAddress">—</small>
+    </div>
+    <nav class="tabs" id="sideTabs">
+      <button data-go="dashboard">◱ Dashboard</button>
+      <button data-go="host">✺ Host a party</button>
+      <button data-go="join">⌗ Join a session</button>
+      <button data-go="pool">⬡ Capped pool</button>
+      <button data-go="topup">＋ Top up</button>
+      <button data-go="gift">✉ Gift</button>
+      <button data-go="settings">⚙ Settings</button>
+    </nav>
+    <div class="sideFooter">
+      <small class="label">Signed in as</small>
+      <b id="sideAccount" style="display:block; font-size:15px; font-weight:800; margin:4px 0 12px">—</b>
+      <button class="btn btn-block" id="sideSignOut">Sign out</button>
+    </div>
+  </aside>
+
+  <main>
+    <div class="phoneWrap">
+      <div class="phone">
+
+        <section id="screen-signin" class="card hard-shadow">
+          <div style="padding:34px 28px 30px">
+            <span class="mark" style="width:52px; height:52px; font-size:24px">S</span>
+            <h1 class="pageTitle">Sign in to<br />spray.</h1>
+            <p class="pageSub">A wallet on BOT Chain gets created behind your sign-in.</p>
+            <div style="display:flex; flex-direction:column; gap:12px">
+              <button class="optbtn btn-yellow" id="btnSignin"><span class="ic">✉</span>Sign in</button>
+            </div>
+            <p class="mono" style="font-size:11px; letter-spacing:0.06em; opacity:0.6; margin:10px 0 0">Email, phone, Google, or X. Pick whichever you like on the next screen.</p>
+            <div class="divider"><hr /><small class="label">Or</small><hr /></div>
+            <button class="btn btn-block" id="btnSigninWallet" style="border-style:dashed">Connect an existing wallet</button>
+            <p class="mono" style="font-size:11px; letter-spacing:0.06em; line-height:1.6; opacity:0.65; margin:22px 0 0" id="signinNote">Your keys stay yours. SprayMe never holds your balance.</p>
+          </div>
+        </section>
+
+        <section id="screen-dashboard" class="card hard-shadow" hidden>
+          <div style="background:var(--ink); color:var(--panel); padding:26px 26px 24px; border-radius:17px 17px 0 0">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start">
+              <div>
+                <small class="label" style="opacity:0.7">Wallet balance</small>
+                <b style="display:block; font-size:48px; font-weight:900; letter-spacing:-0.03em; margin-top:6px" id="dashBalance">—</b>
+                <small class="mono" style="font-size:11px; letter-spacing:0.08em; opacity:0.6" id="dashAddress">—</small>
+              </div>
+              <button aria-label="Settings" data-go="settings" style="flex:none; width:40px; height:40px; border:3px solid var(--panel); border-radius:50%; background:transparent; color:var(--panel); font-size:17px">⚙</button>
+            </div>
+            <div style="display:flex; gap:10px; margin-top:22px; flex-wrap:wrap">
+              <button class="btn" style="background:var(--yellow); border-color:var(--panel)" data-go="topup">Top up ↗</button>
+            </div>
+          </div>
+
+          <div style="padding:24px 26px; border-bottom:3px solid var(--ink)" id="activeSessionBlock" hidden>
+            <small class="label">Active session</small>
+            <div class="card hard-shadow" style="background:var(--orange); padding:20px; margin-top:12px">
+              <div style="display:flex; justify-content:space-between; align-items:center" class="mono">
+                <span style="font-size:11px; font-weight:700; letter-spacing:0.1em">Spraying now</span>
+                <b id="activeSessionCode" style="font-size:11px; letter-spacing:0.1em">—</b>
+              </div>
+              <h3 style="font-size:26px; margin:10px 0 0" id="activeSessionTitle">—</h3>
+              <p class="mono" style="margin:6px 0 16px; font-size:12px">You have sprayed <span id="activeSessionSprayed">—</span></p>
+              <div style="display:flex; gap:10px; flex-wrap:wrap">
+                <button class="btn btn-dark" data-go="spray">Spray</button>
+                <button class="btn" id="activeSessionWallLink">See the wall</button>
+              </div>
+            </div>
+            <div style="display:flex; gap:10px; margin-top:14px">
+              <button class="btn" style="flex:1; background:var(--mint)" data-go="join">Join another</button>
+              <button class="btn" style="flex:1; background:var(--purple)" data-go="gift">Gift privately</button>
+            </div>
+          </div>
+          <div style="padding:24px 26px; border-bottom:3px solid var(--ink)" id="noSessionBlock">
+            <small class="label">No session yet</small>
+            <p style="margin:10px 0 16px">Join with a code from the host, open your own party, or gift someone directly, no session needed for that one.</p>
+            <div style="display:flex; flex-direction:column; gap:10px">
+              <button class="btn btn-coral btn-block btn-lg" data-go="join">Join a session</button>
+              <button class="btn btn-block" data-go="host">Host a party</button>
+              <button class="btn btn-block" data-go="gift">Send a gift</button>
+            </div>
+          </div>
+
+          <div style="padding:24px 26px; border-bottom:3px solid var(--ink)">
+            <small class="label">Your sessions</small>
+            <div id="recentSessions" style="margin-top:10px">
+              <p class="mono" style="font-size:13px; opacity:0.6" id="recentSessionsEmpty">Nothing here yet. Sessions you join will show up in this list.</p>
+            </div>
+          </div>
+
+          <div style="padding:24px 26px">
+            <small class="label">Spray history</small>
+            <div id="historyList" style="margin-top:10px">
+              <p class="mono" style="font-size:13px; opacity:0.6" id="historyEmpty">No sprays or gifts sent from this wallet yet.</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="screen-host" class="card hard-shadow" hidden>
+          <div style="padding:30px 28px">
+            <button class="backlink" data-go="dashboard">&larr; Back</button>
+            <h1 class="pageTitle" id="hostHeading">Host a party</h1>
+            <p class="pageSub" id="hostSubhead">Set up your event, get a code guests can join with.</p>
+
+            <div class="pillTabs" id="hostModeTabs">
+              <div class="pillTab active" data-hostmode="party">Party</div>
+              <div class="pillTab" data-hostmode="personal">Personal request</div>
+            </div>
+
+            <div id="hostPaneForm">
+              <div class="field">
+                <label class="label" for="hostCode">Session code (guests will type this)</label>
+                <input id="hostCode" class="mono-input" placeholder="TUNDE24" autocapitalize="characters" />
+              </div>
+              <div class="field">
+                <label class="label" id="hostTitleLabel" for="hostTitle">Party title</label>
+                <input id="hostTitle" placeholder="e.g. Tunde &amp; Ada's wedding" />
+              </div>
+              <div class="field" id="hostMinSprayField">
+                <label class="label" for="hostMinSpray">Minimum spray, in BOT</label>
+                <input id="hostMinSpray" type="number" step="0.0001" value="0.0001" />
+              </div>
+              <div id="hostSplitsField">
+                <label class="label">Who gets paid, and how much of each spray</label>
+                <div id="hostSplitRows" style="margin-top:10px"></div>
+                <button type="button" class="btn btn-block" id="hostAddSplit">+ Add recipient</button>
+              </div>
+              <button class="btn btn-coral btn-block btn-lg" id="hostCreateBtn" style="margin-top:18px">Create session</button>
+              <div id="hostFormError" class="mono" style="color:var(--coral); font-size:13px; margin-top:12px; text-align:center"></div>
+            </div>
+
+            <div id="hostPaneResult" hidden style="text-align:center">
+              <h2 style="font-size:26px">You're live 🎉</h2>
+              <div class="code-display" id="hostCodeOut">—</div>
+              <div class="qrWrap"><div id="hostQr"></div></div>
+              <div style="display:flex; flex-direction:column; gap:10px; width:100%; margin-top:6px">
+                <a class="btn btn-block" id="hostJoinLink" href="#" target="_blank">Guest join link &rarr;</a>
+                <a class="btn btn-block" id="hostWallLink" href="#" target="_blank">Open the live wall &rarr;</a>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="screen-pool" class="card hard-shadow" hidden>
+          <div style="padding:30px 28px">
+            <button class="backlink" data-go="dashboard">&larr; Back</button>
+            <h1 class="pageTitle">Capped pool</h1>
+            <p class="pageSub">Cap the guest list, fund it once, split it equally the moment you're ready.</p>
+
+            <div class="pillTabs" id="poolTabs">
+              <div class="pillTab active" data-pooltab="create">Create</div>
+              <div class="pillTab" data-pooltab="join">Join</div>
+              <div class="pillTab" data-pooltab="manage">My pools</div>
+            </div>
+
+            <!-- create a pool -->
+            <div id="poolPaneCreate">
+              <div class="field">
+                <label class="label" for="poolCode">Pool code (guests will type this)</label>
+                <input id="poolCode" class="mono-input" placeholder="TENFRIENDS" autocapitalize="characters" />
+              </div>
+              <div class="field">
+                <label class="label" for="poolTitle">What's this for?</label>
+                <input id="poolTitle" placeholder="e.g. End of trip payout" />
+              </div>
+              <div class="field">
+                <label class="label" for="poolAmount">Total amount to set aside</label>
+                <input id="poolAmount" class="mono-input" placeholder="20000" inputmode="numeric" />
+              </div>
+              <div class="field">
+                <label class="label" for="poolMaxGuests">Guest cap</label>
+                <input id="poolMaxGuests" type="number" min="1" max="200" value="10" />
+              </div>
+              <button class="btn btn-coral btn-block btn-lg" id="poolCreateBtn">Create the pool</button>
+              <div id="poolCreateError" class="mono" style="color:var(--coral); font-size:13px; margin-top:12px; text-align:center"></div>
+
+              <div id="poolCreateResult" hidden style="text-align:center; margin-top:22px">
+                <small class="label">Pool code</small>
+                <div class="code-display" id="poolCodeOut">—</div>
+                <div class="qrWrap"><div id="poolQr"></div></div>
+                <p class="mono" style="font-size:12px; opacity:0.75">Cap: <span id="poolCapOut">—</span> guests. Payout happens from "My pools" whenever you're ready.</p>
+              </div>
+            </div>
+
+            <!-- join a pool -->
+            <div id="poolPaneJoin" hidden>
+              <div class="field">
+                <label class="label" for="poolJoinCode">Pool code</label>
+                <input id="poolJoinCode" class="mono-input" placeholder="TENFRIENDS" autocapitalize="characters" />
+              </div>
+              <div class="field">
+                <label class="label" for="poolJoinName">Your name</label>
+                <input id="poolJoinName" placeholder="What should the host see?" />
+              </div>
+              <button class="btn btn-coral btn-block btn-lg" id="poolJoinBtn">Join this pool</button>
+              <div id="poolJoinError" class="mono" style="color:var(--coral); font-size:13px; margin-top:12px; text-align:center"></div>
+              <div id="poolJoinResult" hidden style="margin-top:16px">
+                <div class="listRow solid"><span>You're in</span><b class="mono" id="poolJoinCountOut">—</b></div>
+                <p class="mono" style="font-size:12px; opacity:0.7; margin-top:10px">The host pays out once the pool fills, or whenever they choose to. Check back here later, there's nothing more to do for now.</p>
+              </div>
+            </div>
+
+            <!-- manage pools I've hosted -->
+            <div id="poolPaneManage">
+              <div id="poolManageList">
+                <p class="mono" style="font-size:13px; opacity:0.6" id="poolManageEmpty">Pools you've created will show up here.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="screen-join" class="card hard-shadow" hidden>
+          <div style="padding:30px 28px">
+            <button class="backlink" data-go="dashboard">&larr; Back</button>
+            <h1 class="pageTitle">Join a session</h1>
+            <p class="pageSub">Type in the code the host shared, or scan the QR they're showing at the party.</p>
+            <div class="field">
+              <label class="label">Session code</label>
+              <input id="joinCode" class="mono-input" placeholder="TUNDE24" autocapitalize="characters" />
+            </div>
+            <div class="field" id="joinNameField">
+              <label class="label">Your name</label>
+              <input id="joinName" placeholder="What should the wall call you?" />
+            </div>
+            <button class="btn btn-coral btn-block btn-lg" id="btnJoinSession">Join session</button>
+            <div id="joinError" class="mono" style="color:var(--coral); font-size:13px; margin-top:12px"></div>
+            <div class="divider"><hr /><small class="label">Or scan</small><hr /></div>
+            <div id="scanBox" class="scanBox">
+              <video id="scanVideo" playsinline muted hidden></video>
+              <span id="scanIcon" style="font-size:44px">⬚</span>
+              <small class="label" id="scanLabel">Scan the QR the host is showing</small>
+              <button class="btn scanOpenBtn" id="btnStartScan">Open camera</button>
+            </div>
+          </div>
+        </section>
+
+        <section id="screen-spray" class="card hard-shadow" hidden>
+          <div style="padding:22px 26px 18px; border-bottom:3px solid var(--ink); display:flex; justify-content:space-between; align-items:center">
+            <button class="backlink" data-go="dashboard">&larr; Back</button>
+            <b class="mono" style="font-size:12px; letter-spacing:0.1em" id="sprayScreenCode">—</b>
+          </div>
+          <div class="topStat">
+            <span class="stat"><small class="label">Balance</small><b id="sprayBalance">—</b></span>
+            <span class="stat" style="text-align:right"><small class="label">Sprayed here</small><b style="color:var(--coral)" id="sprayScreenSprayed">—</b></span>
+          </div>
+          <div style="padding:22px 26px 0">
+            <small class="label">Amount per spray</small>
+            <div class="amountGrid" id="amountGrid">
+              <button class="chip" data-amt="0.005">₦500</button>
+              <button class="chip on" data-amt="0.01">₦1k</button>
+              <button class="chip" data-amt="0.02">₦2k</button>
+              <button class="chip" data-amt="0.05">₦5k</button>
+            </div>
+          </div>
+          <div class="sprayZone">
+            <div class="popLayer" id="popLayer" aria-hidden="true"></div>
+            <button class="sprayBtn" id="sprayBtn">
+              <span class="big">SPRAY</span>
+              <small class="mono" style="font-size:11px; letter-spacing:0.12em" id="sprayBtnHint">Tap or hold</small>
+            </button>
+            <p class="mono" style="margin:0; font-size:11px; letter-spacing:0.08em; opacity:0.65; text-align:center" id="sprayHintText">Each tap sends ₦1,000 on BOT Chain</p>
+          </div>
+          <div style="padding:0 26px 26px">
+            <small class="label">Your sprays</small>
+            <div id="mySpraysList" style="margin-top:8px">
+              <p class="mono" style="font-size:13px; opacity:0.6" id="mySpraysEmpty">Nothing sprayed yet in this session.</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="screen-topup" class="card hard-shadow" hidden>
+          <div style="padding:30px 28px">
+            <button class="backlink" data-go="dashboard">&larr; Back</button>
+            <h1 class="pageTitle">Top up once</h1>
+            <p class="pageSub">Fund your balance before the party starts, and keep spraying without thinking about it again.</p>
+
+            <small class="label">Pay with</small>
+            <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px">
+              <button class="row-toggle on" id="methodWallet" data-method="wallet">
+                <span>From another wallet</span><b class="mono" style="font-size:12px; letter-spacing:0.08em">BOT Chain</b>
+              </button>
+              <button class="row-toggle" id="methodBank" data-method="bank" disabled>
+                <span>Bank transfer</span><b class="mono" style="font-size:12px; letter-spacing:0.08em">Coming soon</b>
+              </button>
+              <button class="row-toggle" id="methodCard" data-method="card" disabled>
+                <span>Debit card</span><b class="mono" style="font-size:12px; letter-spacing:0.08em">Coming soon</b>
+              </button>
+            </div>
+
+            <div id="topupWalletPanel" style="margin-top:22px">
+              <p style="margin:0 0 12px">Send BOT to this address from any wallet. It shows up in your balance as soon as it confirms, usually inside a couple of seconds.</p>
+              <div class="qrWrap"><div id="topupQr"></div></div>
+              <div class="field" style="margin-top:14px">
+                <input id="topupAddress" readonly class="mono-input" style="font-size:13px" />
+              </div>
+              <button class="btn btn-block" id="btnCopyTopupAddress">Copy address</button>
+              <p class="mono" style="font-size:11px; letter-spacing:0.06em; margin:16px 0 0; opacity:0.7">Don't have BOT yet? Bridge USDT in at bridge.botchain.ai, then swap for BOT at dex.botchain.ai.</p>
+            </div>
+
+            <button class="btn btn-coral btn-block btn-lg" id="btnRefreshBalance" style="margin-top:22px">Refresh balance</button>
+          </div>
+        </section>
+
+        <section id="screen-gift" class="card hard-shadow" hidden>
+          <div style="padding:30px 28px">
+            <button class="backlink" data-go="dashboard">&larr; Back</button>
+            <h1 class="pageTitle">Gift</h1>
+            <p class="pageSub">Send straight to one person, or set aside a gift for a few people to claim.</p>
+
+            <div class="pillTabs" id="giftTabs">
+              <div class="pillTab active" data-gifttab="send">Send</div>
+              <div class="pillTab" data-gifttab="create">Drop a gift</div>
+              <div class="pillTab" data-gifttab="claim">Claim a gift</div>
+            </div>
+
+            <!-- send directly, no session involved -->
+            <div class="giftPane" id="giftPaneSend">
+              <div class="field">
+                <label class="label">Their address</label>
+                <input id="giftToAddress" class="mono-input" style="font-size:14px" placeholder="0x… or scan below" />
+              </div>
+              <div id="giftScanBox" class="scanBox" style="height:170px">
+                <video id="giftScanVideo" playsinline muted hidden></video>
+                <span id="giftScanIcon" style="font-size:40px">⬚</span>
+                <small class="label" id="giftScanLabel">Scan their code or address</small>
+                <button class="btn scanOpenBtn" id="btnGiftStartScan">Open camera</button>
+              </div>
+              <div class="field" style="margin-top:16px">
+                <label class="label">Amount</label>
+                <input id="giftAmount" class="mono-input" placeholder="10000" inputmode="numeric" />
+              </div>
+              <button class="btn btn-purple btn-block btn-lg" id="btnSendGift">Send gift</button>
+              <div id="giftError" class="mono" style="color:var(--coral); font-size:13px; margin-top:12px"></div>
+            </div>
+
+            <!-- create a claim-code drop -->
+            <div class="giftPane" id="giftPaneCreate" hidden>
+              <p class="pageSub" style="margin-top:0">Set aside an amount, split it into parcels, and share one code. The first people to claim it get a share. The rest are too late.</p>
+              <div class="field">
+                <label class="label">Total amount to set aside</label>
+                <input id="dropTotal" class="mono-input" placeholder="20000" inputmode="numeric" />
+              </div>
+              <div class="field">
+                <label class="label">How many parcels</label>
+                <input id="dropParcels" type="number" min="1" max="50" value="2" />
+              </div>
+              <button class="btn btn-purple btn-block btn-lg" id="btnCreateDrop">Create the drop</button>
+              <div id="dropCreateError" class="mono" style="color:var(--coral); font-size:13px; margin-top:12px"></div>
+              <div id="dropResult" hidden style="text-align:center; margin-top:22px">
+                <small class="label">Drop code</small>
+                <div class="code-display" id="dropCodeOut">—</div>
+                <div class="qrWrap"><div id="dropQr"></div></div>
+                <p class="mono" style="font-size:12px; opacity:0.75">Each of <span id="dropParcelCount">—</span> claimants gets <span id="dropPerClaim">—</span>.</p>
+              </div>
+            </div>
+
+            <!-- claim a drop -->
+            <div class="giftPane" id="giftPaneClaim" hidden>
+              <div class="field">
+                <label class="label">Drop code</label>
+                <input id="claimCode" class="mono-input" placeholder="PARCEL7" autocapitalize="characters" />
+              </div>
+              <button class="btn btn-purple btn-block btn-lg" id="btnClaimDrop">Claim it</button>
+              <div id="claimError" class="mono" style="color:var(--coral); font-size:13px; margin-top:12px"></div>
+              <div id="claimResult" hidden style="margin-top:16px">
+                <div class="listRow solid"><span>You received</span><b class="mono" id="claimAmountOut">—</b></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="screen-settings" class="card hard-shadow" hidden>
+          <div style="padding:30px 28px">
+            <button class="backlink" data-go="dashboard">&larr; Back</button>
+            <h1 class="pageTitle" style="margin-bottom:22px">Settings</h1>
+            <div class="card" style="background:var(--bg); padding:18px 20px">
+              <small class="label">Signed in as</small>
+              <b style="display:block; font-size:22px; font-weight:800; margin-top:6px" id="settingsAccount">—</b>
+              <small class="mono" style="font-size:11px; letter-spacing:0.08em; opacity:0.7" id="settingsAddress">—</small>
+              <button class="btn" style="margin-top:14px" id="btnCopySettingsAddress">Copy address</button>
+            </div>
+            <div style="margin-top:20px">
+              <button class="row-toggle" id="toggleMc" data-pref="mcOn">
+                <span>Show hype lines on this screen</span><b class="mono" style="font-size:12px; letter-spacing:0.08em" id="mcOnLabel">On</b>
+              </button>
+              <button class="row-toggle" id="toggleName" data-pref="nameOn">
+                <span>Show my real name on the wall</span><b class="mono" style="font-size:12px; letter-spacing:0.08em" id="nameOnLabel">On</b>
+              </button>
+              <button class="row-toggle" id="toggleConfirm" data-pref="confirmOn">
+                <span>Confirm every spray</span><b class="mono" style="font-size:12px; letter-spacing:0.08em" id="confirmOnLabel">Off</b>
+              </button>
+            </div>
+            <div style="margin-top:20px; border-top:3px solid var(--ink); padding-top:18px; display:flex; flex-direction:column; gap:10px">
+              <button class="btn" style="text-align:left" data-go="host">Host your own party</button>
+              <button class="btn" style="text-align:left" id="btnWithdraw">Send balance out</button>
+              <button class="btn btn-coral" style="text-align:left" id="btnSignOutSettings">Sign out</button>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.4/dist/ethers.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@web3auth/modal@9/dist/modal.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@web3auth/ethereum-provider@9/dist/ethereumProvider.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<script src="./config.js"></script>
+<script src="./wallet.js"></script>
+<script src="./qr.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>

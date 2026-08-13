@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SprayMe · owambe money, made on-chain</title>
+<meta name="description" content="Join with a code. Spray at a tap. The money lands before the song ends." />
+<link rel="stylesheet" href="./brutal.css" />
+<style>
+  .shell { max-width: 1220px; margin: 0 auto; padding: 0 28px; }
+  i { font-style: italic; color: var(--coral); }
+  section { border-bottom: 3px solid var(--ink); }
+
+  .pill-label {
+    font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700; letter-spacing: 0.14em;
+    border: 2px solid var(--ink); border-radius: 999px; padding: 8px 16px; display: inline-block;
+  }
+
+  /* ---------- nav + hero ---------- */
+  .nav { display: flex; align-items: center; gap: 24px; justify-content: space-between; padding-top: 20px; padding-bottom: 20px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 900; letter-spacing: 0.06em; font-size: 20px; }
+  .brand .mark {
+    width: 34px; height: 34px; border: 3px solid var(--ink); border-radius: 50%; display: flex;
+    align-items: center; justify-content: center; background: var(--coral); color: var(--panel); font-size: 16px; font-weight: 900;
+  }
+  .navlinks { display: flex; gap: 26px; font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; }
+  @media (max-width: 780px) { .navlinks { display: none; } }
+
+  .heroGrid { padding-top: 36px; padding-bottom: 56px; display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 48px; align-items: center; }
+  @media (max-width: 900px) { .heroGrid { grid-template-columns: 1fr; } }
+  .heroCopy h1 { font-size: 118px; line-height: 0.86; margin: 26px 0 0; letter-spacing: -0.03em; }
+  @media (max-width: 640px) { .heroCopy h1 { font-size: 72px; } }
+  .heroCopy p { font-size: 20px; line-height: 1.45; margin: 26px 0 0; max-width: 460px; font-weight: 500; }
+  .actions { display: flex; align-items: center; gap: 22px; margin-top: 32px; flex-wrap: wrap; }
+  .actions a.textlink { font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700; letter-spacing: 0.06em; border-bottom: 2px solid var(--ink); padding-bottom: 2px; }
+
+  .heroArt { position: relative; min-height: 420px; }
+  .hello {
+    position: absolute; top: 0; left: 6%; width: 74%; background: var(--panel); border: 3px solid var(--ink);
+    border-radius: 22px; box-shadow: 8px 8px 0 var(--ink); padding: 22px 24px; transform: rotate(-3deg);
+  }
+  .hello small { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.14em; font-weight: 700; }
+  .hello b { display: block; font-size: 38px; margin-top: 6px; }
+  .hello em { display: block; font-size: 26px; font-weight: 600; color: var(--coral); font-style: italic; }
+  .landed {
+    position: absolute; top: 180px; right: 0; width: 150px; height: 150px; border: 3px solid var(--ink); border-radius: 50%;
+    background: var(--mint); box-shadow: 6px 6px 0 var(--ink); display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 6px; transform: rotate(8deg);
+  }
+  .landed .dot { width: 40px; height: 40px; border: 3px solid var(--ink); border-radius: 50%; background: var(--coral); }
+  .landed span { font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-align: center; line-height: 1.3; }
+  .receipt {
+    position: absolute; bottom: 0; left: 0; width: 230px; background: var(--panel); border: 3px solid var(--ink);
+    border-radius: 14px; box-shadow: 6px 6px 0 var(--ink); padding: 18px; transform: rotate(4deg);
+  }
+  .receipt b { font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.12em; }
+  .receipt .lines { display: flex; flex-direction: column; gap: 8px; margin: 14px 0; }
+  .receipt hr { border: none; border-top: 2px solid var(--ink); margin: 0; }
+  .receipt strong { font-size: 30px; }
+  .pointer { position: absolute; bottom: 60px; right: 60px; font-size: 44px; transform: rotate(-18deg); }
+
+  .boardStatus { padding: 0 0 22px; display: flex; align-items: flex-start; gap: 14px; font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.1em; font-weight: 700; }
+  .boardStatus b { border: 2px solid var(--ink); border-radius: 999px; padding: 6px 14px; background: var(--yellow); flex: none; }
+  .boardStatus span { opacity: 0.7; padding-top: 6px; }
+
+  /* ---------- live sessions strip ---------- */
+  .sessions { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 3px solid var(--ink); }
+  @media (max-width: 900px) { .sessions { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .sessions { grid-template-columns: 1fr; } }
+  .sessionCard { padding: 26px 22px; display: flex; flex-direction: column; gap: 14px; border-right: 3px solid var(--ink); }
+  .sessionCard:last-child { border-right: none; }
+  .sessionCard header { display: flex; justify-content: space-between; align-items: center; font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; }
+  .sessionCard header b { font-size: 15px; }
+  .sessionCard h3 { font-size: 26px; line-height: 1.1; font-weight: 800; letter-spacing: -0.01em; }
+  .sessionCode { display: flex; flex-direction: column; gap: 4px; font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.1em; border-top: 2px solid var(--ink); padding-top: 12px; margin-top: auto; }
+  .sessionCode span { opacity: 0.65; }
+  .sessionCard button {
+    font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; background: var(--panel);
+    border: 3px solid var(--ink); border-radius: 999px; padding: 12px 14px; cursor: pointer; text-align: left;
+  }
+  .sessionCard button:hover { background: var(--ink); color: var(--panel); }
+
+  .ticker { border-top: 3px solid var(--ink); background: var(--ink); color: var(--panel); overflow: hidden; padding: 14px 0; }
+  .ticker div { display: flex; gap: 44px; width: max-content; font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700; letter-spacing: 0.12em; animation: spray-marquee 22s linear infinite; }
+
+  /* ---------- solution ---------- */
+  .solution { background: var(--purple); color: var(--ink); }
+  .solution .pill-label { border-color: var(--ink); }
+  .solutionGrid { padding-top: 88px; padding-bottom: 88px; display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: start; }
+  @media (max-width: 900px) { .solutionGrid { grid-template-columns: 1fr; } }
+  .solution h2 { font-size: 64px; line-height: 0.98; margin: 26px 0 0; letter-spacing: -0.025em; }
+  @media (max-width: 640px) { .solution h2 { font-size: 42px; } }
+  .solution p { font-size: 19px; line-height: 1.5; margin: 24px 0 0; max-width: 480px; font-weight: 500; }
+  .solStack { position: relative; display: flex; flex-direction: column; gap: 22px; }
+  .solCard { border: 3px solid var(--ink); border-radius: 22px; padding: 26px; }
+  .solCard.light { background: var(--panel); color: var(--ink); box-shadow: 8px 8px 0 var(--ink); }
+  .solCard.dark { background: var(--ink); color: var(--panel); box-shadow: 8px 8px 0 var(--ink); }
+  .solCard h3 { font-family: 'Space Mono', monospace; font-size: 13px; letter-spacing: 0.12em; margin: 10px 0 16px; }
+  .solCard ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; font-size: 18px; font-weight: 600; }
+  .solPointer { position: absolute; top: -34px; right: 6px; font-size: 40px; transform: rotate(14deg); }
+
+  /* ---------- how ---------- */
+  .how { background: var(--bg); }
+  .howGrid { padding-top: 88px; padding-bottom: 88px; display: grid; grid-template-columns: 0.95fr 1.05fr; gap: 56px; align-items: center; }
+  @media (max-width: 900px) { .howGrid { grid-template-columns: 1fr; } }
+  .sheet { background: var(--panel); border: 3px solid var(--ink); border-radius: 6px; box-shadow: 10px 10px 0 var(--ink); padding: 30px 28px; }
+  .sheet .dots { font-family: 'Space Mono', monospace; letter-spacing: 0.3em; font-size: 12px; opacity: 0.5; overflow: hidden; white-space: nowrap; }
+  .sheet h3 { font-family: 'Space Mono', monospace; font-size: 13px; letter-spacing: 0.12em; margin: 20px 0 24px; }
+  .step { display: flex; gap: 16px; align-items: flex-start; border-top: 2px dashed var(--ink); padding-top: 18px; margin-top: 20px; }
+  .step:first-of-type { margin-top: 0; }
+  .step b {
+    flex: none; width: 38px; height: 38px; border: 3px solid var(--ink); border-radius: 50%; display: flex;
+    align-items: center; justify-content: center; font-weight: 900;
+  }
+  .step strong { display: block; font-size: 20px; font-weight: 800; }
+  .step span { display: block; font-size: 16px; font-weight: 500; opacity: 0.8; margin-top: 4px; }
+  .sheet footer { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.12em; border-top: 2px dashed var(--ink); margin-top: 24px; padding-top: 16px; opacity: 0.7; }
+  .howCopy h2 { font-size: 68px; line-height: 0.95; margin: 26px 0 0; letter-spacing: -0.03em; }
+  @media (max-width: 640px) { .howCopy h2 { font-size: 44px; } }
+  .howCopy p { font-size: 19px; line-height: 1.5; margin: 24px 0 0; max-width: 460px; font-weight: 500; }
+
+  /* ---------- inside a session ---------- */
+  .inside { background: var(--bg); }
+  .insideWrap { padding-top: 88px; padding-bottom: 88px; }
+  .insideWrap h2 { font-size: 60px; margin: 26px 0 48px; letter-spacing: -0.025em; max-width: 800px; }
+  @media (max-width: 640px) { .insideWrap h2 { font-size: 38px; } }
+  .featureGrid {
+    display: grid; grid-template-columns: repeat(3, 1fr); border: 3px solid var(--ink); border-radius: 24px;
+    overflow: hidden; background: var(--panel);
+  }
+  @media (max-width: 860px) { .featureGrid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .featureGrid { grid-template-columns: 1fr; } }
+  .feature { padding: 32px 28px; border-right: 3px solid var(--ink); border-bottom: 3px solid var(--ink); display: flex; flex-direction: column; gap: 12px; }
+  .feature .icon { width: 48px; height: 48px; border: 3px solid var(--ink); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+  .feature h3 { font-size: 30px; margin: 6px 0 0; letter-spacing: -0.02em; }
+  .feature p { margin: 0; font-size: 17px; line-height: 1.45; font-weight: 500; }
+  .feature.inverted { background: var(--ink); color: var(--panel); }
+  .feature.inverted .icon { border-color: var(--panel); }
+
+  /* ---------- quotes ---------- */
+  .quotesSection { background: var(--ink); color: var(--panel); }
+  .quotesWrap { padding: 80px 0; }
+  .quotesWrap h2 { font-size: 52px; margin: 0 0 44px; letter-spacing: -0.02em; }
+  @media (max-width: 640px) { .quotesWrap h2 { font-size: 36px; } }
+  .quoteGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  @media (max-width: 860px) { .quoteGrid { grid-template-columns: 1fr; } }
+  .quoteGrid blockquote {
+    margin: 0; color: var(--ink); border: 3px solid transparent; border-radius: 20px; padding: 26px;
+    display: flex; flex-direction: column; gap: 18px; font-size: 19px; line-height: 1.4; font-weight: 600;
+  }
+  .quoteGrid span { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.12em; font-weight: 700; opacity: 0.7; }
+
+  /* ---------- sides ---------- */
+  .sides { background: var(--ink); color: var(--panel); text-align: center; }
+  .sidesWrap { padding-top: 88px; padding-bottom: 88px; }
+  .sidesWrap h2 { font-size: 60px; margin: 26px 0 48px; letter-spacing: -0.025em; }
+  @media (max-width: 640px) { .sidesWrap h2 { font-size: 38px; } }
+  .sideGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; text-align: left; }
+  @media (max-width: 780px) { .sideGrid { grid-template-columns: 1fr; } }
+  .sideCard { background: var(--panel); color: var(--ink); border: 3px solid var(--panel); border-radius: 22px; box-shadow: 8px 8px 0 var(--panel); padding: 30px; display: flex; flex-direction: column; gap: 12px; }
+  .sideCard .icon { width: 56px; height: 56px; border: 3px solid var(--ink); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 26px; }
+  .sideCard h3 { font-size: 38px; margin: 0; letter-spacing: -0.02em; }
+  .sideCard p { margin: 0; font-size: 18px; font-weight: 500; line-height: 1.45; }
+  .sideCard ul { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; font-family: 'Space Mono', monospace; font-size: 13px; }
+  .sideCard li { border-top: 2px solid var(--ink); padding-top: 8px; }
+
+  /* ---------- roadmap ---------- */
+  .roadmap { background: var(--bg); }
+  .roadmapWrap { padding-top: 88px; padding-bottom: 88px; }
+  .roadmapWrap h2 { font-size: 60px; margin: 26px 0 48px; letter-spacing: -0.025em; max-width: 760px; }
+  @media (max-width: 640px) { .roadmapWrap h2 { font-size: 38px; } }
+  .roadGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; }
+  @media (max-width: 780px) { .roadGrid { grid-template-columns: 1fr; } }
+  .roadCard { border: 3px solid var(--ink); border-radius: 22px; box-shadow: 8px 8px 0 var(--ink); padding: 32px; display: flex; flex-direction: column; gap: 12px; }
+  .roadCard.now { background: var(--green); }
+  .roadCard.next { background: var(--panel); }
+  .roadTag { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.12em; font-weight: 700; border-radius: 999px; padding: 6px 12px; align-self: flex-start; }
+  .roadCard.now .roadTag { border: 2px solid var(--ink); background: var(--panel); }
+  .roadCard.next .roadTag { border: 2px dashed var(--ink); }
+  .roadCard h3 { font-size: 40px; margin: 8px 0 0; letter-spacing: -0.02em; }
+  .roadCard p { margin: 0; font-size: 18px; line-height: 1.45; font-weight: 500; }
+
+  /* ---------- manifesto ---------- */
+  .manifesto { background: var(--yellow); text-align: center; }
+  .manifestoWrap { max-width: 1000px; margin: 0 auto; padding: 96px 28px; }
+  .manifestoWrap h2 { font-size: 64px; line-height: 1.02; letter-spacing: -0.03em; }
+  @media (max-width: 640px) { .manifestoWrap h2 { font-size: 40px; } }
+  .manifestoWrap p { font-size: 20px; font-weight: 500; line-height: 1.5; margin: 28px auto 0; max-width: 620px; }
+
+  /* ---------- faq ---------- */
+  .faq { background: var(--bg); }
+  .faqWrap { padding-top: 88px; padding-bottom: 88px; display: grid; grid-template-columns: 0.8fr 1.2fr; gap: 56px; align-items: start; }
+  @media (max-width: 900px) { .faqWrap { grid-template-columns: 1fr; } }
+  .faqWrap h2 { font-size: 58px; line-height: 0.98; letter-spacing: -0.03em; }
+  @media (max-width: 640px) { .faqWrap h2 { font-size: 38px; } }
+  .faqList { display: flex; flex-direction: column; border-top: 3px solid var(--ink); }
+  .faqItem { border-bottom: 3px solid var(--ink); padding: 22px 4px; }
+  .faqItem button {
+    all: unset; width: 100%; display: flex; gap: 16px; align-items: center; cursor: pointer;
+    font-size: 22px; font-weight: 800;
+  }
+  .faqItem button span {
+    flex: none; width: 34px; height: 34px; border: 3px solid var(--ink); border-radius: 50%; display: flex;
+    align-items: center; justify-content: center; font-size: 20px;
+  }
+  .faqItem p { margin: 16px 0 0 50px; font-size: 18px; line-height: 1.55; font-weight: 500; max-width: 620px; display: none; }
+  .faqItem.open p { display: block; }
+
+  /* ---------- footer ---------- */
+  .siteFooter { background: var(--bg); padding: 56px 28px 72px; border-bottom: none; }
+  .footerCard {
+    max-width: 1220px; margin: 0 auto; background: var(--ink); color: var(--panel); border: 3px solid var(--ink);
+    border-radius: 28px; padding: 52px 44px; display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 48px; align-items: center;
+  }
+  @media (max-width: 780px) { .footerCard { grid-template-columns: 1fr; text-align: center; } }
+  .footerCard .brand .mark { border-color: var(--panel); }
+  .footerCard h2 { font-size: 52px; line-height: 1; margin: 24px 0 0; letter-spacing: -0.03em; }
+  @media (max-width: 640px) { .footerCard h2 { font-size: 34px; } }
+  .footerCard .tag { font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.08em; margin: 24px 0 0; opacity: 0.6; }
+  .footerAction { display: flex; flex-direction: column; gap: 16px; align-items: flex-start; }
+  @media (max-width: 780px) { .footerAction { align-items: center; } }
+  .footerAction b { font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.12em; }
+  .footerAction .btn { background: var(--yellow); color: var(--ink); border-color: var(--panel); box-shadow: 6px 6px 0 var(--panel); }
+  .footerAction .btn:active { box-shadow: 0 0 0 var(--panel); }
+  .footerAction small { font-size: 13px; line-height: 1.5; opacity: 0.65; max-width: 300px; }
+</style>
+</head>
+<body>
+<main>
+
+<section id="top">
+  <nav class="nav shell">
+    <a class="brand" href="#top"><span class="mark">S</span>SPRAYME</a>
+    <div class="navlinks">
+      <a href="#how">HOW IT WORKS</a>
+      <a href="#inside">INSIDE A SESSION</a>
+      <a href="#sides">HOSTS &amp; GUESTS</a>
+      <a href="#faqs">FAQS</a>
+    </div>
+    <a class="btn btn-lg" style="box-shadow:4px 4px 0 var(--ink)" href="./app?auto=1" data-signin-go="./app">SIGN IN</a>
+  </nav>
+
+  <div class="heroGrid shell">
+    <div class="heroCopy">
+      <span class="pill-label" style="background:var(--mint)">ọwàmbẹ̀ / SPRAYING WITHOUT CASH</span>
+      <h1>SPRAY<br/>ON <i>TAP</i></h1>
+      <p>Join with a code. Spray at a tap.<br/>The money lands before the song ends.</p>
+      <div class="actions">
+        <a class="btn btn-coral btn-lg" href="./app?auto=1" data-signin-go="./app">OPEN A SESSION</a>
+        <a class="textlink" href="#how">SEE HOW IT WORKS ↘</a>
+      </div>
+    </div>
+    <div class="heroArt" aria-hidden="true">
+      <div class="hello"><small>HELLO, I AM</small><b>Real money.</b><em>Not confetti.</em></div>
+      <div class="landed"><span class="dot"></span><span>SPRAY<br/>LANDED</span></div>
+      <div class="receipt">
+        <b>SPRAY RECEIPT</b>
+        <div class="lines"><hr style="width:100%"/><hr style="width:78%"/><hr style="width:55%"/></div>
+        <strong>₦5,000</strong>
+      </div>
+    </div>
+  </div>
+
+  <div class="sessions">
+    <article class="sessionCard" style="background:var(--orange)">
+      <header><span>SPRAYING NOW</span><b>₦412,000</b></header>
+      <h3>Tunde's 40th, Lekki</h3>
+      <div class="sessionCode"><span>CODE</span><b>TUNDE24</b></div>
+      <button onclick="location.href='./app?code=TUNDE24'">JOIN THIS SESSION ↗</button>
+    </article>
+    <article class="sessionCard" style="background:var(--mint)">
+      <header><span>WEDDING</span><b>₦1,240,000</b></header>
+      <h3>Ada &amp; Chidi, Ikeja</h3>
+      <div class="sessionCode"><span>CODE</span><b>ADACHI</b></div>
+      <button onclick="location.href='./app?code=ADACHI'">JOIN THIS SESSION ↗</button>
+    </article>
+    <article class="sessionCard" style="background:var(--tan)">
+      <header><span>NAMING</span><b>₦53,000</b></header>
+      <h3>Baby Zainab, Surulere</h3>
+      <div class="sessionCode"><span>CODE</span><b>ZAINAB08</b></div>
+      <button onclick="location.href='./app?code=ZAINAB08'">JOIN THIS SESSION ↗</button>
+    </article>
+    <article class="sessionCard" style="background:var(--green)">
+      <header><span>OPENS TOMORROW</span><b>₦0</b></header>
+      <h3>Mama Nkechi's send-off</h3>
+      <div class="sessionCode"><span>CODE</span><b>NKECHI7</b></div>
+      <button onclick="location.href='./app?code=NKECHI7'">JOIN THIS SESSION ↗</button>
+    </article>
+  </div>
+
+  <div class="ticker"><div>
+    <span>✣ NO CASH TO CARRY</span><span>✣ TAP OR HOLD TO SPRAY</span><span>✣ SPLITS FOR DJ AND CATERER</span><span>✣ SIGNED RECEIPTS</span><span>✣ BUILT ON BOT CHAIN</span>
+    <span>✣ NO CASH TO CARRY</span><span>✣ TAP OR HOLD TO SPRAY</span><span>✣ SPLITS FOR DJ AND CATERER</span><span>✣ SIGNED RECEIPTS</span><span>✣ BUILT ON BOT CHAIN</span>
+  </div></div>
+</section>
+
+<section class="solution" id="solution">
+  <div class="solutionGrid shell">
+    <div>
+      <span class="pill-label">THE OWAMBE MONEY LAYER</span>
+      <h2>0.76 seconds.<br/>That's how fast<br/>the money lands.</h2>
+      <p>Spraying loose naira is treated as currency abuse by the Central Bank, and people have been prosecuted for it. SprayMe keeps the tradition and removes the crime by moving the spraying itself onto BOT Chain. Every spray is a real payment, measured live at 0.76 seconds average block time on mainnet.</p>
+    </div>
+    <div class="solStack">
+      <div class="solCard light">
+        <i style="color:var(--coral)">●</i>
+        <h3>THE HOST SETS UP</h3>
+        <ul><li>✓ A code guests can hear once</li><li>✓ Splits for celebrant, DJ, caterer</li><li>✓ The wall on the big screen</li><li>✓ One payout at the end</li></ul>
+      </div>
+      <div class="solCard dark">
+        <i style="color:var(--green)">●</i>
+        <h3>THE GUEST SPRAYS</h3>
+        <ul><li>✓ Joins with the code</li><li>✓ Tops up once</li><li>✓ Taps or holds to spray</li><li>✓ Keeps the receipt</li></ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="how" id="how">
+  <div class="howGrid shell">
+    <div class="sheet">
+      <div class="dots">••••••••••••••••••••</div>
+      <h3>YOU JUST OPENED A SESSION!</h3>
+      <div class="step"><b style="background:var(--orange)">1</b><p><strong>Sign in with email, phone or social</strong><span>A real wallet on BOT Chain is created behind that sign-in. No extension, no twelve words to write down.</span></p></div>
+      <div class="step"><b style="background:var(--mint)">2</b><p><strong>Share the code</strong><span>On the programme, the screen, or the MC's mic.</span></p></div>
+      <div class="step"><b style="background:var(--green)">3</b><p><strong>Guests top up once</strong><span>Cash to crypto, or from a wallet they already have. After that, no more sign-ins all night.</span></p></div>
+      <div class="step"><b style="background:var(--yellow)">4</b><p><strong>Spray at a tap</strong><span>Tap once, or hold for rapid fire. The wall keeps score.</span></p></div>
+    </div>
+    <div class="howCopy">
+      <span class="pill-label" style="background:var(--yellow)">ONE SMALL FLOW</span>
+      <h2>I'm intrigued.<br/>How does<br/><i>this work?</i></h2>
+      <p>No crypto homework. No app store detour. A wallet on BOT Chain is created the moment you sign in, and it stays yours.</p>
+    </div>
+  </div>
+</section>
+
+<section class="inside" id="inside">
+  <div class="insideWrap shell">
+    <span class="pill-label" style="background:var(--orange)">INSIDE A SESSION</span>
+    <h2>Everything the party already does, minus the cash.</h2>
+    <div class="featureGrid">
+      <article class="feature">
+        <span class="icon" style="background:var(--yellow)">◉</span>
+        <h3>The wall</h3>
+        <p>A live display for the venue screen: a leaderboard of who has sprayed the most, a feed of sprays as they land, and the running total for the night.</p>
+      </article>
+      <article class="feature">
+        <span class="icon" style="background:var(--coral); color:var(--panel)">✺</span>
+        <h3>The MC agent</h3>
+        <p>Every owambe has a hype man. Ours watches the sprays on chain and writes live Pidgin commentary onto the wall, calling names and announcing when someone takes the lead.</p>
+      </article>
+      <article class="feature" style="border-right:none">
+        <span class="icon" style="background:var(--green)">◫</span>
+        <h3>Automatic splits</h3>
+        <p>The host sets the rules when the session opens: a share to the celebrant, a share to the DJ, a share to the caterer. Nobody settles up at 2am.</p>
+      </article>
+      <article class="feature">
+        <span class="icon" style="background:var(--purple)">✉</span>
+        <h3>Gift, privately</h3>
+        <p>The digital envelope. Same wallet, same payment, but it stays off the public leaderboard.</p>
+      </article>
+      <article class="feature">
+        <span class="icon" style="background:var(--mint)">✈</span>
+        <h3>Spray from abroad</h3>
+        <p>Family who could not travel spray from their phone and get called out by name on the wall, in real time, as if they were in the room.</p>
+      </article>
+      <article class="feature inverted" style="border-right:none; border-bottom:none">
+        <span class="icon" style="background:var(--yellow)">⚡</span>
+        <h3>Why BOT Chain</h3>
+        <p>Spraying is many tiny payments in quick succession. It only feels right where confirmation is instant and fees are near zero. On a slower chain, one spray would cost more than the spray.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="sides" id="sides">
+  <div class="sidesWrap shell">
+    <span class="pill-label" style="background:var(--mint); border-color:var(--panel)">PICK YOUR SIDE OF THE NIGHT</span>
+    <h2>Host the session. Or join it.</h2>
+    <div class="sideGrid">
+      <article class="sideCard">
+        <div class="icon" style="background:var(--green)">⌖</div>
+        <small class="label">FOR THE CELEBRANT</small>
+        <h3>Hosting</h3>
+        <p>Open a session, announce the code, and watch the wall fill up.</p>
+        <ul><li>Automatic splits and payouts</li><li>Live wall for the big screen</li><li>Full ledger the next morning</li></ul>
+      </article>
+      <article class="sideCard">
+        <div class="icon" style="background:var(--purple)">✦</div>
+        <small class="label">FOR THE GUEST</small>
+        <h3>Attending</h3>
+        <p>One code, one top up, and your thumb does the rest.</p>
+        <ul><li>Tap or hold to spray</li><li>Gift a friend at the table</li><li>Receipt for every spray</li></ul>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="roadmap" id="roadmap">
+  <div class="roadmapWrap shell">
+    <span class="pill-label" style="background:var(--purple)">WHERE THIS GOES</span>
+    <h2>Sending today. Receiving next.</h2>
+    <div class="roadGrid">
+      <div class="roadCard now">
+        <span class="roadTag">SHIPPING NOW</span>
+        <h3>Join and spray out</h3>
+        <p>A guest joins a session with a code and sends money outward, publicly on the wall or privately as a gift.</p>
+      </div>
+      <div class="roadCard next">
+        <span class="roadTag">NEXT</span>
+        <h3>Show a code and receive</h3>
+        <p>A vendor at the party, someone collecting contributions, a small business: generate a personal QR that anyone scans to pay you directly, with no session to join. Same wallet, turned around.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="manifesto">
+  <div class="manifestoWrap">
+    <h2>Joy of cash.<br/>Clarity of a ledger.<br/><i>Proof of a receipt.</i></h2>
+    <p>SprayMe is the layer that makes the money part of an owambe as easy as the dancing.</p>
+  </div>
+</section>
+
+<section class="faq" id="faqs">
+  <div class="faqWrap shell">
+    <h2>Have more<br/>questions?<br/>We've got you! <i>☯</i></h2>
+    <div class="faqList" id="faqList">
+      <article class="faqItem open">
+        <button><span>−</span>Do I need a crypto wallet to spray?</button>
+        <p>No. Sign in with your email or phone and a real wallet on BOT Chain is created for you. There is no extension to install and no seed phrase to memorise.</p>
+      </article>
+      <article class="faqItem">
+        <button><span>+</span>How does a guest join a session?</button>
+        <p>With the short code the host announces, prints on the programme, or shows as a QR on screen. Enter it, top up once, and you are ready.</p>
+      </article>
+      <article class="faqItem">
+        <button><span>+</span>Where does the money actually go?</button>
+        <p>Straight to the celebrant, following any splits the host set for the DJ, MC or caterer. Each spray is a real transfer with a signed receipt.</p>
+      </article>
+      <article class="faqItem">
+        <button><span>+</span>What is the wall?</button>
+        <p>A live board for the venue screen. It shows every spray as it lands and ranks the night's biggest sprayers, so the room can see the energy.</p>
+      </article>
+      <article class="faqItem">
+        <button><span>+</span>What if I do not spend everything I topped up?</button>
+        <p>It stays in your wallet. Carry it to the next owambe, gift it to a friend, or withdraw it whenever you like.</p>
+      </article>
+      <article class="faqItem">
+        <button><span>+</span>Is spraying not illegal in Nigeria?</button>
+        <p>Throwing loose naira notes is. The Central Bank treats it as currency abuse and there have been prosecutions. SprayMe keeps the tradition and takes the notes out of it, since nothing physical is thrown.</p>
+      </article>
+      <article class="faqItem">
+        <button><span>+</span>Is SprayMe holding my money?</button>
+        <p>No. The sign-in is familiar, but what it creates is a genuine wallet address on BOT Chain that belongs to you. It is tied to your email, so you can get back in from another phone or after clearing your browser.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="siteFooter">
+  <div class="footerCard">
+    <div>
+      <span class="brand"><span class="mark">S</span>SPRAYME</span>
+      <h2>Came for the party,<br/><i style="color:var(--yellow)">stayed for the receipts.</i></h2>
+      <p class="tag">Built on BOT Chain</p>
+    </div>
+    <div class="footerAction">
+      <b>READY FOR THE NEXT OWAMBE?</b>
+      <a class="btn btn-lg" href="./app?auto=1" data-signin-go="./app">SIGN IN TO SPRAY →</a>
+      <small>Your wallet stays yours. Every spray needs your own approval.</small>
+    </div>
+  </div>
+</footer>
+
+<script>
+document.querySelectorAll('#faqList .faqItem').forEach((item) => {
+  item.querySelector('button').addEventListener('click', () => {
+    const isOpen = item.classList.contains('open');
+    document.querySelectorAll('#faqList .faqItem').forEach((a) => {
+      a.classList.remove('open');
+      a.querySelector('button span').textContent = '+';
+    });
+    if (!isOpen) {
+      item.classList.add('open');
+      item.querySelector('button span').textContent = '−';
+    }
+  });
+});
+</script>
+
+<!-- Sign-in lives here too, not just on app.html, so the popup opens
+     directly over the landing page instead of over a separate "sign in"
+     screen the user would otherwise have to pass through first. -->
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.4/dist/ethers.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@web3auth/modal@9/dist/modal.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@web3auth/ethereum-provider@9/dist/ethereumProvider.umd.min.js"></script>
+<script src="./config.js"></script>
+<script src="./wallet.js"></script>
+<script>
+document.querySelectorAll('[data-signin-go]').forEach((el) => {
+  const original = el.textContent;
+  el.addEventListener('click', async (e) => {
+    e.preventDefault();
+    const dest = el.dataset.signinGo;
+    el.textContent = 'Connecting…';
+    el.style.pointerEvents = 'none';
+    try {
+      await SprayWallet.signIn();
+      location.href = dest;
+    } catch (err) {
+      el.textContent = err.message.length < 40 ? err.message : "Couldn't sign in, try again";
+      el.style.pointerEvents = '';
+      setTimeout(() => { el.textContent = original; }, 3000);
+    }
+  });
+});
+</script>
+</body>
+</html>

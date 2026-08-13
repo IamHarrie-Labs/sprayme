@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "spray-web",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["http-server", "web", "-p", "8080", "-c-1", "-e", "html"],
+      "port": 8080
+    }
+  ]
+}

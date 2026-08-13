@@ -1,0 +1,149 @@
+/* Shared design system for every page: a cream, hard-bordered, hard-shadow
+   style. Two type families carry the whole thing: Archivo for anything
+   spoken out loud (headings, buttons), Space Mono for anything read like a
+   receipt (labels, amounts, meta text). */
+
+@import url('https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,600;1,800&family=Space+Mono:wght@400;700&display=swap');
+
+:root {
+  --bg: #EFE9DC;
+  --ink: #17150F;
+  --panel: #FFF6E5;
+  --coral: #E8452F;
+  --coral-hover: #FF5C45;
+  --yellow: #FFD84D;
+  --mint: #B9EBD0;
+  --purple: #C9B8F5;
+  --orange: #FFA23D;
+  --green: #8FD97F;
+  --tan: #F6EBCF;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; padding: 0; background: var(--bg); }
+body { font-family: 'Archivo', sans-serif; color: var(--ink); }
+a { color: var(--ink); text-decoration: none; }
+a:hover { color: var(--coral); }
+input, button, textarea { font-family: inherit; }
+button { cursor: pointer; }
+::selection { background: var(--yellow); color: var(--ink); }
+
+.mono { font-family: 'Space Mono', monospace; }
+.label {
+  font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700;
+  letter-spacing: 0.14em; opacity: 0.65; text-transform: uppercase;
+}
+
+/* buttons */
+.btn {
+  font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700;
+  letter-spacing: 0.06em; border: 3px solid var(--ink); border-radius: 999px;
+  padding: 13px 20px; cursor: pointer; text-align: center; background: var(--panel);
+  color: var(--ink);
+}
+.btn-block { width: 100%; }
+.btn-lg { font-size: 13px; padding: 16px; box-shadow: 5px 5px 0 var(--ink); }
+.btn-lg:active { box-shadow: 0 0 0 var(--ink); transform: translate(5px, 5px); }
+.btn-coral { background: var(--coral); color: var(--panel); }
+.btn-coral:hover { background: var(--coral-hover); }
+.btn-yellow { background: var(--yellow); }
+.btn-mint { background: var(--mint); }
+.btn-purple { background: var(--purple); }
+.btn-dark { background: var(--ink); color: var(--panel); }
+.btn-ghost { background: transparent; border: none; padding: 0; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* choice row / big option buttons on sign-in */
+.optbtn {
+  display: flex; align-items: center; gap: 14px; border: 3px solid var(--ink);
+  border-radius: 16px; padding: 16px 18px; font-size: 17px; font-weight: 800;
+  text-align: left; box-shadow: 5px 5px 0 var(--ink); width: 100%;
+}
+.optbtn:active { box-shadow: 0 0 0 var(--ink); transform: translate(5px, 5px); }
+.optbtn .ic { font-size: 20px; }
+
+.divider {
+  display: flex; align-items: center; gap: 14px; margin: 22px 0;
+}
+.divider hr { flex: 1; border: none; border-top: 2px solid var(--ink); margin: 0; }
+
+/* cards */
+.card {
+  background: var(--panel); border: 3px solid var(--ink); border-radius: 20px;
+}
+.hard-shadow { box-shadow: 8px 8px 0 var(--ink); }
+
+/* form fields */
+.field { margin-bottom: 16px; }
+.field label { display: block; margin-bottom: 8px; }
+.field input {
+  width: 100%; border: 3px solid var(--ink); border-radius: 14px; background: var(--panel);
+  padding: 15px 16px; font-size: 17px; font-weight: 600; color: var(--ink); outline: none;
+}
+.field input:focus { background: var(--yellow); }
+.field input.mono-input {
+  font-family: 'Space Mono', monospace; font-size: 22px; letter-spacing: 0.1em;
+  text-align: center; font-weight: 700;
+}
+
+/* toggle row (settings) */
+.row-toggle {
+  width: 100%; display: flex; justify-content: space-between; align-items: center;
+  gap: 12px; text-align: left; border: 3px solid var(--ink); border-radius: 14px;
+  padding: 15px 18px; font-size: 16px; font-weight: 700; margin-bottom: 10px;
+  background: var(--panel);
+}
+.row-toggle.on { background: var(--mint); }
+
+/* chips (amount pickers) */
+.chip {
+  font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700;
+  letter-spacing: 0.04em; border: 3px solid var(--ink); border-radius: 12px;
+  padding: 13px 6px; background: var(--panel);
+}
+.chip.on { background: var(--yellow); box-shadow: 4px 4px 0 var(--ink); }
+
+h1, h2, h3 { margin: 0; font-weight: 900; letter-spacing: -0.02em; }
+
+.pageTitle { font-size: 40px; line-height: 0.98; margin: 18px 0 0; }
+.pageSub { font-size: 16px; line-height: 1.45; font-weight: 500; margin: 12px 0 22px; }
+
+.backlink {
+  background: none; border: none; padding: 0; cursor: pointer;
+  font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700; letter-spacing: 0.1em;
+}
+
+/* small pill-style mode switcher (host.html modes, gift screen panes) —
+   named apart from nav.tabs, which is the sidebar's own tab list */
+.pillTabs { display: flex; gap: 8px; margin: 0 0 20px; background: var(--panel); border: 3px solid var(--ink); border-radius: 999px; padding: 4px; }
+.pillTab { flex: 1; text-align: center; padding: 10px 0; border-radius: 999px; font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; }
+.pillTab.active { background: var(--yellow); }
+
+/* big code readout — used by host.html's result screen and the gift-drop pane */
+.code-display {
+  font-family: 'Space Mono', monospace; font-size: 32px; font-weight: 700; letter-spacing: 0.14em;
+  background: var(--ink); color: var(--panel); padding: 16px 22px; border-radius: 16px; margin: 10px 0 4px;
+  display: inline-block;
+}
+
+/* payout split row editor — used by the host screen (party mode) */
+.split-row { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
+.split-row input[type="text"] { flex: 2; }
+.split-row input[type="number"] { flex: 1; width: 74px; }
+.split-row button { background: none; border: none; color: var(--coral); font-size: 22px; cursor: pointer; padding: 0 4px; }
+
+/* camera QR scan box — used by the Join and Gift screens */
+.scanBox {
+  border: 3px dashed var(--ink); border-radius: 20px; height: 190px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 10px; background: var(--bg); overflow: hidden; position: relative;
+}
+.scanBox video { width: 100%; height: 100%; object-fit: cover; }
+.scanBox .scanOpenBtn { position: absolute; bottom: 12px; left: 12px; right: 12px; width: auto; }
+
+@keyframes spray-pop {
+  0% { transform: translateY(0) scale(0.6); opacity: 0; }
+  30% { opacity: 1; }
+  100% { transform: translateY(-90px) scale(1.15); opacity: 0; }
+}
+@keyframes spray-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@keyframes toast-in { from { transform: translateY(12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }

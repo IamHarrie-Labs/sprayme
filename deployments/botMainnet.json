@@ -1,0 +1,13 @@
+{
+  "network": "botMainnet",
+  "chainId": 677,
+  "spraySession": "0xA4f3540Af7d5f16AdF5518765C37d1766Aef5b12",
+  "deployTx": "0x4833f2a15cb109f76be3fdf4fb4078e58e3667d4971ef6ae8d1d053ae22a2c95",
+  "deployedAt": "2026-08-13T19:29:11.817Z",
+  "giftDrop": "0x1bD37B2316f51059096E91F26313cba9DB949f32",
+  "giftDropDeployTx": "0x1d43177c3474a4c072e2138d9aecf7ac138da44ea2f39e21ae5accf75869a0ac",
+  "giftDropDeployedAt": "2026-08-13T19:29:53.758Z",
+  "cappedPool": "0x2ec8C0C2D312E0b9DFd5f124EBEbf5b47EFE712F",
+  "cappedPoolDeployTx": "0xf1214a8a9dd37da39b6ee6730499beb36cd4404ba6530bcbed1911897f6e4690",
+  "cappedPoolDeployedAt": "2026-08-13T19:30:30.426Z"
+}
