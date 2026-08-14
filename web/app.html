@@ -104,7 +104,10 @@
   <aside id="sidebar" hidden>
     <a class="brand" href="./"><span class="mark">S</span>SPRAYME</a>
     <div class="balanceCard">
-      <small class="label" style="opacity:0.7">Balance</small>
+      <div style="display:flex; justify-content:space-between; align-items:center">
+        <small class="label" style="opacity:0.7">Balance</small>
+        <button id="btnSideRefreshBalance" aria-label="Refresh balance" style="background:none; border:none; color:var(--panel); font-size:15px; padding:2px; cursor:pointer; line-height:1">⟳</button>
+      </div>
       <b id="sideBalance">—</b>
       <small class="mono" style="font-size:10px; letter-spacing:0.08em; opacity:0.6" id="sideAddress">—</small>
     </div>

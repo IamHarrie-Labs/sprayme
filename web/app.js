@@ -75,6 +75,23 @@
     setTimeout(() => el.remove(), 3200);
   }
 
+  // Wraps a transaction-sending click handler so a second tap while the
+  // first is still in flight is ignored outright, rather than firing a
+  // second transaction that races the first for the same nonce. This was
+  // silently missing everywhere — real on mobile, where a slow first tap
+  // reads as "nothing happened" and invites a second one.
+  function guardClick(btn, fn) {
+    return async (...args) => {
+      if (btn.disabled) return;
+      btn.disabled = true;
+      try {
+        await fn(...args);
+      } finally {
+        btn.disabled = false;
+      }
+    };
+  }
+
   // ---------------------------------------------------------------- screens
 
   function switchScreen(name) {
@@ -335,7 +352,7 @@
 
   // ---------------------------------------------------------------- join
 
-  $('btnJoinSession').onclick = async () => {
+  $('btnJoinSession').onclick = guardClick($('btnJoinSession'), async () => {
     const code = $('joinCode').value.trim().toUpperCase();
     const typedName = $('joinName').value.trim();
     $('joinError').textContent = '';
@@ -356,7 +373,7 @@
     } catch (e) {
       $('joinError').textContent = e.shortMessage || e.message;
     }
-  };
+  });
 
   // ------------------------------------------------------------- QR scan
   //
@@ -498,21 +515,34 @@
   }
 
   // One spray call, awaited only until the transaction is broadcast, not
-  // until it's mined. Confirmation is tracked separately so the button
-  // never stalls waiting for a block.
+  // until it's mined — hold-to-spray would stall on every block otherwise.
+  // What used to happen next was wrong: the balance shown was decremented
+  // locally by the spray amount alone, ignoring gas, and if the transaction
+  // later failed, tx.wait().catch(() => {}) swallowed it completely — no
+  // error, no correction, a permanently wrong number until a full reload
+  // resynced from chain. Confirmation is still handled in the background
+  // so the hold gesture never stalls, but now it always ends in a real
+  // balance refresh, and a failure is shown and rolled back instead of
+  // silently eaten.
   async function sendOneSpray() {
     const value = ethers.parseEther(state.amountBot);
     const tx = await state.contract.spray(state.session.id, { value });
-    tx.wait().catch(() => {});
     popAmount();
     const stamp = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
     state.mySprays.unshift({ meta: `${stamp} · ${state.session.code}`, amount: NGN(botToNgn(parseFloat(state.amountBot))) });
     renderMySprays();
     state.sessionSprayedWei += value;
     $('sprayScreenSprayed').textContent = weiToBalanceLabel(state.sessionSprayedWei);
-    state.balanceWei -= value;
-    $('sprayBalance').textContent = weiToBalanceLabel(state.balanceWei);
     renderAmountLabel();
+
+    tx.wait()
+      .then(() => refreshBalance())
+      .catch((err) => {
+        state.sessionSprayedWei -= value;
+        $('sprayScreenSprayed').textContent = weiToBalanceLabel(state.sessionSprayedWei);
+        showToast(`A spray didn't go through: ${err.shortMessage || err.message}`);
+        refreshBalance();
+      });
   }
 
   // Hold-to-spray is sequential by construction: each loop iteration awaits
@@ -586,10 +616,14 @@
     navigator.clipboard.writeText(state.address);
     showToast('Address copied.');
   };
-  $('btnRefreshBalance').onclick = async () => {
+  $('btnRefreshBalance').onclick = guardClick($('btnRefreshBalance'), async () => {
     await refreshBalance();
     showToast('Balance refreshed.');
-  };
+  });
+  $('btnSideRefreshBalance').onclick = guardClick($('btnSideRefreshBalance'), async () => {
+    await refreshBalance();
+    showToast('Balance refreshed.');
+  });
 
   // ---------------------------------------------------------------- host
   //
@@ -687,7 +721,7 @@
     return splits;
   }
 
-  $('hostCreateBtn').onclick = async () => {
+  $('hostCreateBtn').onclick = guardClick($('hostCreateBtn'), async () => {
     $('hostFormError').textContent = '';
     try {
       const code = $('hostCode').value.trim().toUpperCase();
@@ -719,7 +753,7 @@
     } catch (e) {
       $('hostFormError').textContent = e.shortMessage || e.message;
     }
-  };
+  });
 
   // ---------------------------------------------------------------- pool
   //
@@ -745,7 +779,7 @@
     switchPoolTab('create');
   }
 
-  $('poolCreateBtn').onclick = async () => {
+  $('poolCreateBtn').onclick = guardClick($('poolCreateBtn'), async () => {
     $('poolCreateError').textContent = '';
     try {
       const code = $('poolCode').value.trim().toUpperCase();
@@ -778,9 +812,9 @@
     } catch (e) {
       $('poolCreateError').textContent = e.shortMessage || e.message;
     }
-  };
+  });
 
-  $('poolJoinBtn').onclick = async () => {
+  $('poolJoinBtn').onclick = guardClick($('poolJoinBtn'), async () => {
     $('poolJoinError').textContent = '';
     try {
       const code = $('poolJoinCode').value.trim().toUpperCase();
@@ -805,7 +839,7 @@
       else if (/AlreadyPaidOut/.test(msg)) $('poolJoinError').textContent = 'This pool has already been paid out.';
       else $('poolJoinError').textContent = e.shortMessage || msg;
     }
-  };
+  });
 
   async function loadMyPools() {
     const el = $('poolManageList');
@@ -910,7 +944,7 @@
   });
   $('btnGiftStartScan').onclick = () => giftScanner.start();
 
-  $('btnSendGift').onclick = async () => {
+  $('btnSendGift').onclick = guardClick($('btnSendGift'), async () => {
     $('giftError').textContent = '';
     const ngn = parseInt(($('giftAmount').value || '0').replace(/[^0-9]/g, ''), 10);
     if (!ngn) { $('giftError').textContent = 'Enter an amount first.'; return; }
@@ -932,7 +966,7 @@
     } catch (e) {
       $('giftError').textContent = e.shortMessage || e.message;
     }
-  };
+  });
 
   // -------------------------------------------------------- gift: create a drop
 
@@ -943,7 +977,7 @@
     return s;
   }
 
-  $('btnCreateDrop').onclick = async () => {
+  $('btnCreateDrop').onclick = guardClick($('btnCreateDrop'), async () => {
     $('dropCreateError').textContent = '';
     const ngn = parseInt(($('dropTotal').value || '0').replace(/[^0-9]/g, ''), 10);
     const parcels = parseInt($('dropParcels').value || '0', 10);
@@ -983,11 +1017,11 @@
         }
       }
     }
-  };
+  });
 
   // -------------------------------------------------------- gift: claim a drop
 
-  $('btnClaimDrop').onclick = async () => {
+  $('btnClaimDrop').onclick = guardClick($('btnClaimDrop'), async () => {
     $('claimError').textContent = '';
     const code = $('claimCode').value.trim().toUpperCase();
     if (!code) { $('claimError').textContent = 'Enter a drop code first.'; return; }
@@ -1010,7 +1044,7 @@
       else if (/DropExhausted/.test(msg)) $('claimError').textContent = 'All the parcels in this drop are already claimed.';
       else $('claimError').textContent = e.shortMessage || msg;
     }
-  };
+  });
 
   // ---------------------------------------------------------------- settings
 
@@ -1035,7 +1069,7 @@
     navigator.clipboard.writeText(state.address);
     showToast('Address copied.');
   };
-  $('btnWithdraw').onclick = async () => {
+  $('btnWithdraw').onclick = guardClick($('btnWithdraw'), async () => {
     const to = prompt('Send your remaining balance to which address?');
     if (!to) return;
     try {
@@ -1052,7 +1086,7 @@
     } catch (e) {
       showToast(e.shortMessage || e.message);
     }
-  };
+  });
 
   // ---------------------------------------------------------------- utils
 
