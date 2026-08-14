@@ -257,7 +257,19 @@
       $('noSessionBlock').hidden = false;
     }
 
-    await Promise.all([loadRecentSessions(), loadHistory()]);
+    // Each one is caught independently — a flaky connection failing one
+    // chain read (more likely on mobile) used to reject silently and leave
+    // the section hanging on "Loading…" forever, with the other section's
+    // data never rendering either since Promise.all fails on the first
+    // rejection.
+    await Promise.all([
+      loadRecentSessions().catch((e) => {
+        $('recentSessions').innerHTML = `<p class="mono" style="font-size:13px; color:var(--coral)">Couldn't load your sessions — ${escapeHtml(e.shortMessage || e.message)}</p>`;
+      }),
+      loadHistory().catch((e) => {
+        $('historyList').innerHTML = `<p class="mono" style="font-size:13px; color:var(--coral)">Couldn't load your history — ${escapeHtml(e.shortMessage || e.message)}</p>`;
+      }),
+    ]);
   }
 
   async function loadRecentSessions() {
@@ -324,11 +336,24 @@
     for (const ev of hostedOpened) {
       const session = await state.contract.getSession(ev.args.sessionId).catch(() => null);
       if (!session || session.total === 0n) continue;
+
+      // session.total is the whole party's gross take, not what this host
+      // personally received — those are only the same number if the host
+      // is the sole 100% recipient. Anyone else on the splits (DJ,
+      // caterer) means this wallet's real share is smaller, so it's
+      // computed from this wallet's own bps rather than shown as if the
+      // full total landed here.
+      const splits = await state.contract.getSplits(ev.args.sessionId).catch(() => []);
+      const mySplit = splits.find((s) => s.recipient.toLowerCase() === state.address.toLowerCase());
+      if (!mySplit) continue; // hosted it, but not actually a payout recipient on it
+      const myShareWei = (session.total * BigInt(mySplit.bps)) / 10000n;
+      if (myShareWei === 0n) continue;
+
       rows.push({
         dir: 'received',
         label: ev.args.title || `Session #${ev.args.sessionId}`,
-        meta: 'HOSTED · TOTAL SO FAR',
-        amountWei: session.total,
+        meta: `HOSTED · YOUR SHARE (${mySplit.bps / 100}%)`,
+        amountWei: myShareWei,
         blockNumber: ev.blockNumber,
       });
     }
